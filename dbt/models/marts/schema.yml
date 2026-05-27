@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: mart_order_performance
+    description: "One row per order — delivery status, SLA outcome, review score"
+    columns:
+      - name: order_id
+        tests: [unique, not_null]
+      - name: order_status
+        tests: [not_null]
+      - name: delivery_status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["On Time", "Late", "Cancelled", "In Progress", "Unknown"]
+
+  - name: mart_seller_performance
+    description: "One row per seller — aggregated revenue, delivery rate, review score"
+    columns:
+      - name: seller_id
+        tests: [unique, not_null]
+      - name: total_revenue
+        tests: [not_null]
+      - name: total_orders
+        tests: [not_null]
+
+  - name: mart_product_performance
+    description: "One row per product category — revenue, volume, freight"
+    columns:
+      - name: category
+        tests: [unique, not_null]
+      - name: total_revenue
+        tests: [not_null]
+
+  - name: mart_payment_analysis
+    description: "Grouped by payment_type + installments — order count and value"
+    columns:
+      - name: payment_type
+        tests: [not_null]
+
+  - name: mart_monthly_revenue
+    description: "Monthly aggregates — GMV, order count, avg delivery days, review score"
+    columns:
+      - name: order_month
+        tests: [unique, not_null]
+      - name: total_revenue
+        tests: [not_null]

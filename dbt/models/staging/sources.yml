@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: "Raw Olist Brazilian E-Commerce CSVs loaded by the ingestion layer"
+    tables:
+      - name: raw_orders
+        description: "99,441 orders — status, timestamps, estimated delivery"
+      - name: raw_order_items
+        description: "112,650 line items — product, seller, price, freight per item"
+      - name: raw_order_payments
+        description: "103,886 payment records — type, installments, value"
+      - name: raw_order_reviews
+        description: "99,224 customer reviews — score (1-5), comments, timestamps"
+      - name: raw_customers
+        description: "99,441 customers — unique ID, zip code prefix, city, state"
+      - name: raw_sellers
+        description: "3,095 sellers — zip code prefix, city, state"
+      - name: raw_products
+        description: "32,951 products — category name (Portuguese), dimensions, weight"
+      - name: raw_product_category_translation
+        description: "71 category name translations from Portuguese to English"

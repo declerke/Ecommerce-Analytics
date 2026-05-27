@@ -1,0 +1,8 @@
+ecommerce_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '/opt/airflow/data/ecommerce.duckdb') }}"
+      threads: 4
+      schema: main
