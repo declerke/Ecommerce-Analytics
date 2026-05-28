@@ -1,4 +1,6 @@
 import os
+import shutil
+import tempfile
 import zipfile
 import duckdb
 from pathlib import Path
@@ -33,9 +35,15 @@ def download_dataset() -> Path:
         timeout=300,
     )
     resp.raise_for_status()
-    with open(zip_path, "wb") as f:
-        for chunk in resp.iter_content(chunk_size=8192):
-            f.write(chunk)
+    tmp_fd, tmp_path = tempfile.mkstemp(dir=DATA_DIR, suffix=".zip.tmp")
+    try:
+        with os.fdopen(tmp_fd, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=8192):
+                f.write(chunk)
+        shutil.move(tmp_path, zip_path)
+    except Exception:
+        os.unlink(tmp_path)
+        raise
     return zip_path
 
 
@@ -54,7 +62,7 @@ def load_to_duckdb() -> None:
             con.execute(f"DROP TABLE IF EXISTS raw.{table_name}")
             con.execute(f"""
                 CREATE TABLE raw.{table_name} AS
-                SELECT * FROM read_csv_auto('{csv_path}', header=True)
+                SELECT * FROM read_csv_auto('{csv_path.as_posix()}', header=True)
             """)
             count = con.execute(f"SELECT COUNT(*) FROM raw.{table_name}").fetchone()[0]
             print(f"Loaded raw.{table_name}: {count:,} rows")

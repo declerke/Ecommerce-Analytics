@@ -11,14 +11,14 @@ order_level AS (
         f.seller_state,
         f.seller_city,
         f.order_id,
-        SUM(f.price)         AS order_revenue,
-        SUM(f.freight_value) AS order_freight,
+        SUM(f.price)           AS order_revenue,
+        SUM(f.freight_value)   AS order_freight,
         COUNT(f.order_item_id) AS items_in_order,
-        e.avg_review_score,
-        e.is_on_time
+        MAX(e.avg_review_score) AS avg_review_score,
+        MAX(e.is_on_time)       AS is_on_time
     FROM financials f
     LEFT JOIN enriched e ON f.order_id = e.order_id
-    GROUP BY f.seller_id, f.seller_state, f.seller_city, f.order_id, e.avg_review_score, e.is_on_time
+    GROUP BY f.seller_id, f.seller_state, f.seller_city, f.order_id
 )
 SELECT
     seller_id,

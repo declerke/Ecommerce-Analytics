@@ -4,6 +4,16 @@ import subprocess
 import pendulum
 from airflow.sdk import dag, task
 
+_DBT_FLAGS = ["--profiles-dir", "/opt/airflow/dbt", "--project-dir", "/opt/airflow/dbt"]
+
+
+def _dbt_run(select: str) -> None:
+    result = subprocess.run(
+        ["dbt", "run", "--select", select] + _DBT_FLAGS,
+        capture_output=True, text=True, check=True,
+    )
+    print(result.stdout)
+
 
 @dag(
     dag_id="ecommerce_analytics",
@@ -33,60 +43,21 @@ def ecommerce_analytics():
 
     @task(pool="duckdb_pool")
     def dbt_run_staging() -> None:
-        result = subprocess.run(
-            [
-                "dbt", "run",
-                "--select", "staging",
-                "--profiles-dir", "/opt/airflow/dbt",
-                "--project-dir", "/opt/airflow/dbt",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        print(result.stdout)
+        _dbt_run("staging")
 
     @task(pool="duckdb_pool")
     def dbt_run_intermediate() -> None:
-        result = subprocess.run(
-            [
-                "dbt", "run",
-                "--select", "intermediate",
-                "--profiles-dir", "/opt/airflow/dbt",
-                "--project-dir", "/opt/airflow/dbt",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        print(result.stdout)
+        _dbt_run("intermediate")
 
     @task(pool="duckdb_pool")
     def dbt_run_marts() -> None:
-        result = subprocess.run(
-            [
-                "dbt", "run",
-                "--select", "marts",
-                "--profiles-dir", "/opt/airflow/dbt",
-                "--project-dir", "/opt/airflow/dbt",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        print(result.stdout)
+        _dbt_run("marts")
 
-    @task()
+    @task(pool="duckdb_pool")
     def dbt_test() -> None:
         result = subprocess.run(
-            [
-                "dbt", "test",
-                "--profiles-dir", "/opt/airflow/dbt",
-                "--project-dir", "/opt/airflow/dbt",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
+            ["dbt", "test"] + _DBT_FLAGS,
+            capture_output=True, text=True, check=True,
         )
         print(result.stdout)
 
@@ -99,7 +70,7 @@ def ecommerce_analytics():
                 "SELECT COUNT(*) FROM marts.mart_order_performance"
             ).fetchone()[0]
             revenue = con.execute(
-                "SELECT ROUND(SUM(total_revenue), 2) FROM marts.mart_monthly_revenue"
+                "SELECT ROUND(COALESCE(SUM(total_revenue), 0), 2) FROM marts.mart_monthly_revenue"
             ).fetchone()[0]
             sellers = con.execute(
                 "SELECT COUNT(*) FROM marts.mart_seller_performance"
