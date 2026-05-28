@@ -12,5 +12,3 @@ dbt/dbt_packages/
 dbt/logs/
 data/
 projectsummary.md
-assets/*.png
-assets/*.jpg
